@@ -1,25 +1,28 @@
 from __future__ import annotations
-from cli.config import build_config, parse_args
+
+import sys
+
+from cli.config import get_config_and_filepath
 from config import Config
 from base.context import Context
 from base.executor import Executor
 from features import load_features
 import logger
-
+import const as CONST
 
 def process(ctx: Context, config: Config, input_file: str):
     logger.debug('Loading features...')
     collectors, processors = load_features(config.feature)
 
     logger.debug('Building postprocessor...')
-    executor = Executor(collectors.build(ctx), processors.build(ctx))
+    executor = Executor(collectors.build(config), processors.build(config))
 
     logger.debug(f'Loading "{input_file}"')
     with open(input_file, "r") as f:
         lines = f.readlines()
 
     logger.debug('Processing...')
-    executor.execute(lines)
+    executor.execute(ctx, lines)
 
     if not config.dry_run:
         logger.debug('Saving')
@@ -30,15 +33,20 @@ def process(ctx: Context, config: Config, input_file: str):
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    config = build_config(args)
-    ctx = Context()
+    logger.debug(f'Src dir: {CONST.SRCDIR}')
+    logger.debug(f'V-Env dir: {CONST.VENVDIR}')
 
-    if args.verbose > 2:
-        logger.setLevel(logger.DEBUG)
-    elif args.verbose > 1:
-        logger.setLevel(logger.INFO - 1)
-    elif args.verbose > 0:
-        logger.setLevel(logger.INFO)
+    try:
+        try:
+            config, filepath = get_config_and_filepath()
+            logger.setLevel(config.log_level)
+        except Exception as e:
+            logger.setLevel(logger.ERROR)
+            raise e
 
-    process(ctx, config, args.filename)
+        process(Context(), config, filepath)
+    except Exception as e:
+        if not isinstance(e, logger.SilentError):
+            raise e
+        else:
+            sys.exit(1)

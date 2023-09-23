@@ -1,6 +1,7 @@
 from __future__ import annotations
+from typing import Optional
 import re
-from base import Processor, ProcessorsList, CollectorsSet
+from base import Processor, ProcessorsList, CollectorsSet, Context
 from collectors.last_unload import CollectLastUnload, LastUnloadLine
 from utils import match_retraction
 import logger
@@ -13,22 +14,25 @@ class ProcessFinalUpload(Processor):
     almost_finished = False
     last_wipe = False
 
-    def process(self, line: str, no: int) -> str:
-        if self.context[LastUnloadLine] <= 0:
+    def process(self, context: Context, line: str, no: int) -> str:
+        if context[LastUnloadLine] <= 0:
             self.finished = True
             return line
 
-        if line.startswith("_PRINT_START"):
+        if line.startswith(self.config.macro.print_start):
             line = re.sub(r'\s+MMU_NO_FINAL_UNLOAD=\S*', '', line)
             line = f'{line} MMU_NO_FINAL_UNLOAD=1'
             logger.info('Ensured MMU_NO_FINAL_UNLOAD=1 in print start macro')
             return line
 
-        if no >= self.context[LastUnloadLine] - 15:
+        if no >= context[LastUnloadLine] - 15:
             if match_retraction(line):
                 self.last_wipe = True
 
-        if self.last_wipe or no >= self.context[LastUnloadLine] - 1:
+        if self.last_wipe or no >= context[LastUnloadLine] - 1:
+            if line.startswith('; stop printing object'):
+                return line
+
             if self.almost_finished:
                 self.finished = True
                 return ";LAST UNLOAD REMOVED!!"
@@ -42,7 +46,7 @@ class ProcessFinalUpload(Processor):
         return line
 
 
-def load(collectors: CollectorsSet, processors: ProcessorsList) -> None:
+def load(collectors: CollectorsSet, processors: ProcessorsList, _: Optional[dict]) -> None:
     collectors.add(CollectLastUnload)
     processors.append(ProcessFinalUpload)
 

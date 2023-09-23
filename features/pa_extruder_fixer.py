@@ -1,6 +1,7 @@
 from __future__ import annotations
+from typing import Optional
 import re
-from base import Processor, ProcessorsList, CollectorsSet
+from base import Processor, ProcessorsList, CollectorsSet, Context
 import logger
 
 logger = logger.getChild('pa_extruder_fixer')
@@ -9,7 +10,7 @@ logger = logger.getChild('pa_extruder_fixer')
 class ProcessSetPressureAdvance(Processor):
     finished = False
 
-    def process(self, line: str, no: int) -> str:
+    def process(self, context: Context, line: str, no: int) -> str:
         if line.startswith("SET_PRESSURE_ADVANCE"):
             if 'EXTRUDER=' in line:
                 logger.info(f'Fixing SET_PRESSURE_ADVANCE EXTRUDER= parameter [{no}]')
@@ -18,7 +19,7 @@ class ProcessSetPressureAdvance(Processor):
         return line
 
 
-def load(collectors: CollectorsSet, processors: ProcessorsList) -> None:
+def load(_: CollectorsSet, processors: ProcessorsList, __: Optional[dict]) -> None:
     processors.append(ProcessSetPressureAdvance)
 
 

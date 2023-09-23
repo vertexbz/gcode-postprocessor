@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from base import Collector, Number
+from base import Collector, Number, Context
 
 
 class PrintSection:
@@ -43,25 +43,25 @@ class CollectSections(Collector):
 
         self._last_extrude_line = no
 
-    def _tool_changed(self, new_tool: int):
+    def _tool_changed(self, context: Context, new_tool: int):
         if self._current_tool != new_tool:
-            self.add_section()
+            self.add_section(context)
             self._current_tool = new_tool
 
-    def _z_changed(self, new_z: Number):
+    def _z_changed(self, context: Context, new_z: Number):
         if self._current_z.raw != new_z.raw:
-            self.add_section()
+            self.add_section(context)
             self._current_z = new_z
 
-    def _type_changed(self, new_type: str):
+    def _type_changed(self, context: Context, new_type: str):
         if new_type == "Custom":
             return
 
         if self._current_type != new_type:
-            self.add_section()
+            self.add_section(context)
             self._current_type = new_type
 
-    def add_section(self):
+    def add_section(self, context: Context):
         if self._current_type in ('', 'Custom'):
             return
         if self._first_extrude_line == -1:
@@ -69,7 +69,7 @@ class CollectSections(Collector):
         if self._last_extrude_line == -1:
             return
 
-        self.context[PrintSections].append(
+        context[PrintSections].append(
             PrintSection(
                 self._current_tool,
                 self._current_type,
@@ -82,8 +82,8 @@ class CollectSections(Collector):
         self._first_extrude_line = -1
         self._last_extrude_line = -1
 
-    def collect(self, line: str, no: int):
-        if line.startswith("_PRINT_START"):
+    def collect(self, context: Context, line: str, no: int):
+        if line.startswith(self.config.macro.print_start):
             match = re.match(r'INITIAL_TOOL=(\d+)', line)
             if match:
                 self._current_tool = int(match.group(1))
@@ -93,16 +93,16 @@ class CollectSections(Collector):
             match = re.match(r'T(\d+)', line)
             if match:
                 new_tool = int(match.group(1))
-                self._tool_changed(new_tool)
+                self._tool_changed(context, new_tool)
                 return
 
         if line.startswith(";TYPE:"):
-            self._type_changed(line[6:].rstrip())
+            self._type_changed(context, line[6:].rstrip())
             return
 
         if line.startswith(";Z:"):
             height = line[3:].rstrip()
-            self._z_changed(Number(height))
+            self._z_changed(context, Number(height))
             return
 
         if line.startswith("G0 ") or line.startswith("G1 "):

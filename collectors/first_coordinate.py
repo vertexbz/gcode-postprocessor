@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional
-from base import Collector, Number
-import utils as UTILS
+from base import Collector, Number, Context
+from utils import match_xy_move
 
 
 class FirstCoordinate:
@@ -10,13 +10,12 @@ class FirstCoordinate:
 
 
 class CollectFirstCoordinate(Collector):
-    @property
-    def finished(self):
-        return self.context[FirstCoordinate].x is not None and self.context[FirstCoordinate].y is not None
+    finished = False
 
-    def collect(self, line: str, no: int):
-        match = UTILS.match_xy_move(line)
+    def collect(self, context: Context, line: str, no: int):
+        match = match_xy_move(line)
         if match:
             # Save the X and Y coordinates from the matched line
-            self.context[FirstCoordinate].x = match[0]
-            self.context[FirstCoordinate].y = match[1]
+            context[FirstCoordinate].x = match[0]
+            context[FirstCoordinate].y = match[1]
+            self.finished = True

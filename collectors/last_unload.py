@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional
-from base import Collector
+from base import Collector, Context
 
 
 class LastUnloadLine(int):
@@ -11,10 +11,10 @@ class LastUnloadLine(int):
 class CollectLastUnload(Collector):
     finished = False
 
-    def collect(self, line: str, no: int):
+    def collect(self, context: Context, line: str, no: int):
         if line.startswith('; CP TOOLCHANGE START'):
-            self.context[LastUnloadLine] = LastUnloadLine(no)
+            context[LastUnloadLine] = LastUnloadLine(no)
 
         if line.startswith(';LAST UNLOAD REMOVED!!'):
-            self.context[LastUnloadLine] = LastUnloadLine()
+            context[LastUnloadLine] = LastUnloadLine()
             self.finished = True

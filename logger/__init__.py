@@ -4,29 +4,21 @@ import sys
 from logger.filter_package_path import PackagePathFilter
 from logger.formatter import CustomFormatter
 from logger.format import FORMAT_DEBUG
+from logger.buffered import BufferingHandler
 
 
 logger = logging.getLogger()
-
-def stdout_handler():
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(CustomFormatter(logger))
-    handler.addFilter(PackagePathFilter())
-    return handler
+logger.setLevel(logging.DEBUG)
 
 
-def file_handler(logfile: str):
-    handler = logging.FileHandler(logfile)
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(logging.Formatter(FORMAT_DEBUG))
-    handler.addFilter(PackagePathFilter())
-    return handler
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.DEBUG)
+stdout_handler.setFormatter(CustomFormatter(logger))
+stdout_handler.addFilter(PackagePathFilter())
+buffered_stdout_handler = BufferingHandler(stdout_handler)
+logger.addHandler(buffered_stdout_handler)
+logger.debug('Stdout logger configured')
 
-
-
-logger.setLevel(logging.ERROR)
-logger.addHandler(stdout_handler())
 
 FATAL = logging.FATAL
 CRITICAL = logging.CRITICAL
@@ -45,14 +37,27 @@ critical = logger.critical
 fatal = logger.fatal
 
 getChild = logger.getChild
-setLevel = logger.setLevel
+
+
+def setLevel(level):
+    logger.setLevel(level)
+    buffered_stdout_handler.setLevel(level)
+
 
 def logToFile(logfile: str):
-    logger.addHandler(file_handler(logfile))
+    handler = logging.FileHandler(logfile)
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(logging.Formatter(FORMAT_DEBUG))
+    handler.addFilter(PackagePathFilter())
+    logger.addHandler(handler)
+
+
+class SilentError(Exception):
+    pass
 
 
 __all__ = [
-    'stdout_handler', 'file_handler',
+    'SilentError',
     'getChild', 'setLevel', 'logToFile',
     'fatal', 'critical', 'error', 'warning', 'warn', 'info', 'debug',
     'FATAL', 'CRITICAL', 'ERROR', 'WARNING', 'WARN', 'INFO', 'DEBUG',

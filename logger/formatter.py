@@ -20,7 +20,7 @@ class CustomFormatter(logging.Formatter):
         super().__init__()
         self.logger = logger
 
-    def color_child(self, name):
+    def color_child(self, name: str):
         if name not in self._colors:
             self._colors[name] = fg(rand_8bit('logger.child'))
 
@@ -36,5 +36,5 @@ class CustomFormatter(logging.Formatter):
         format = format.replace(ef.rs, ef.rs + color)
         format = format.replace(fg.rs, fg.rs + color)
 
-        formatter = logging.Formatter(color + format + ef.rs)
+        formatter = logging.Formatter(color + format + fg.rs)
         return formatter.format(record)

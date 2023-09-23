@@ -1,30 +1,31 @@
 from __future__ import annotations
+from typing import Optional
+
+import logger
 
 
 class Features:
-    _list: list[str] = []
+    _data: list[tuple[str, Optional[dict]]] = []
 
     def _normalize(self, feature: str):
         return feature.replace('-', '_')
 
-    def add_once(self, feature: str):
-        if not self.has(feature):
-            self.add(feature)
-
-    def has(self, feature: str):
-        return self._normalize(feature) in self._list
-
-    def read(self) -> list[str]:
-        return self._list[:]
-
-    def add(self, feature: str):
-        self._list.append(self._normalize(feature))
-
     def is_empty(self) -> bool:
-        return len(self._list) == 0
+        return len(self._data) == 0
 
+    def read(self) -> list[tuple[str, Optional[dict]]]:
+        return self._data[:]
+
+    def add(self, feature: str, config: Optional[dict] = None):
+        self._data.append((self._normalize(feature), config))
+
+
+class Macros:
+    print_start = '_PRINT_START'
 
 
 class Config:
-    feature = Features()
+    log_level = logger.ERROR
     dry_run = False
+    feature = Features()
+    macro = Macros()
