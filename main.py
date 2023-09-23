@@ -36,10 +36,8 @@ if __name__ == '__main__':
 
     if args.verbose > 2:
         logger.setLevel(logger.DEBUG)
-        logger.setLongFormat(True)
     elif args.verbose > 1:
-        logger.setLevel(logger.INFO)
-        logger.setLongFormat(True)
+        logger.setLevel(logger.INFO - 1)
     elif args.verbose > 0:
         logger.setLevel(logger.INFO)
 
