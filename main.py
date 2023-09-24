@@ -6,6 +6,7 @@ from cli.config import get_config_and_filepath
 from config import Config
 from base.context import Context
 from base.executor import Executor
+import error
 from features import load_features
 import logger
 import const as CONST
@@ -33,22 +34,23 @@ def process(ctx: Context, config: Config, input_file: str):
 
 
 if __name__ == '__main__':
-    logger.debug(f'Src dir: {CONST.SRCDIR}')
-    logger.debug(f'V-Env dir: {CONST.VENVDIR}')
+    logger.info('G-Code Postprocessor')
+    logger.named_logger('env').debug(f'Src dir: {CONST.SRCDIR}')
+    logger.named_logger('env').debug(f'V-Env dir: {CONST.VENVDIR}')
 
     try:
         try:
             config, filepath = get_config_and_filepath()
-            logger.setLevel(config.log_level)
+            logger.set_level(config.log_level)
         except Exception as e:
-            logger.setLevel(logger.ERROR)
+            logger.set_level(logger.ERROR)
             raise e
 
-        logger.debug(f'DRY RUN: {config.dry_run}')
+        logger.named_logger('env').debug(f'DRY RUN: {config.dry_run}')
 
         process(Context(), config, filepath)
     except Exception as e:
-        if not isinstance(e, logger.SilentError):
+        if not isinstance(e, error.SilentError):
             raise e
         else:
             sys.exit(1)

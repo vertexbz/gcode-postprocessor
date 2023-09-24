@@ -1,11 +1,11 @@
 from __future__ import annotations
 from typing import Optional
 import re
-from base import Processor, ProcessorsList, CollectorsSet, Context
+from base import Processor, ProcessorsList, CollectorsSet, Context, check_no_config
 from collectors.first_coordinate import CollectFirstCoordinate, FirstCoordinate
 import logger
 
-logger = logger.getChild('start_xy')
+logger = logger.named_logger(__name__)
 
 
 class ProcessStartXY(Processor):
@@ -30,7 +30,8 @@ class ProcessStartXY(Processor):
         return line
 
 
-def load(collectors: CollectorsSet, processors: ProcessorsList, _: Optional[dict]) -> None:
+def load(collectors: CollectorsSet, processors: ProcessorsList, config: Optional[dict]) -> None:
+    check_no_config(logger, config)
     collectors.add(CollectFirstCoordinate)
     processors.append(ProcessStartXY)
 

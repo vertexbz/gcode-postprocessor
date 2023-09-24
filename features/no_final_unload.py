@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import Optional
 import re
-from base import Processor, ProcessorsList, CollectorsSet, Context
+from base import Processor, ProcessorsList, CollectorsSet, Context, check_no_config
 from collectors.last_unload import CollectLastUnload, LastUnloadLine
 from utils import match_retraction
 import logger
 
-logger = logger.getChild('no_final_unload')
+logger = logger.named_logger(__name__)
 
 
 class ProcessFinalUpload(Processor):
@@ -21,7 +21,7 @@ class ProcessFinalUpload(Processor):
 
         if line.startswith(self.config.macro.print_start):
             line = re.sub(r'\s+MMU_NO_FINAL_UNLOAD=\S*', '', line)
-            line = f'{line} MMU_NO_FINAL_UNLOAD=1'
+            line = f'{line.rstrip()} MMU_NO_FINAL_UNLOAD=1\n'
             logger.info('Ensured MMU_NO_FINAL_UNLOAD=1 in print start macro')
             return line
 
@@ -46,7 +46,8 @@ class ProcessFinalUpload(Processor):
         return line
 
 
-def load(collectors: CollectorsSet, processors: ProcessorsList, _: Optional[dict]) -> None:
+def load(collectors: CollectorsSet, processors: ProcessorsList, config: Optional[dict]) -> None:
+    check_no_config(logger, config)
     collectors.add(CollectLastUnload)
     processors.append(ProcessFinalUpload)
 

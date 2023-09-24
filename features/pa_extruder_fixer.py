@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import Optional
 import re
-from base import Processor, ProcessorsList, CollectorsSet, Context
+from base import Processor, ProcessorsList, CollectorsSet, Context, check_no_config
 import logger
 
-logger = logger.getChild('pa_extruder_fixer')
+logger = logger.named_logger(__name__)
 
 
 class ProcessSetPressureAdvance(Processor):
@@ -19,7 +19,8 @@ class ProcessSetPressureAdvance(Processor):
         return line
 
 
-def load(_: CollectorsSet, processors: ProcessorsList, __: Optional[dict]) -> None:
+def load(_: CollectorsSet, processors: ProcessorsList, config: Optional[dict]) -> None:
+    check_no_config(logger, config)
     processors.append(ProcessSetPressureAdvance)
 
 

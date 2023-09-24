@@ -5,8 +5,11 @@ from logger.filter_package_path import PackagePathFilter
 from logger.formatter import CustomFormatter
 from logger.format import FORMAT_DEBUG
 from logger.buffered import BufferingHandler
+from logger.level import *
+import logger.level as level
 
 
+Logger = logging.Logger
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -20,14 +23,6 @@ logger.addHandler(buffered_stdout_handler)
 logger.debug('Stdout logger configured')
 
 
-FATAL = logging.FATAL
-CRITICAL = logging.CRITICAL
-ERROR = logging.ERROR
-WARNING = logging.WARNING
-WARN = logging.WARN
-INFO = logging.INFO
-DEBUG = logging.DEBUG
-
 debug = logger.debug
 info = logger.info
 warn = logger.warn
@@ -36,12 +31,14 @@ error = logger.error
 critical = logger.critical
 fatal = logger.fatal
 
-getChild = logger.getChild
 
-
-def setLevel(level):
-    logger.setLevel(level)
+def set_level(level):
+    # logger.setLevel(level)
     buffered_stdout_handler.setLevel(level)
+
+
+def named_logger(module: str):
+    return logger.getChild(module)
 
 
 def logToFile(logfile: str):
@@ -52,13 +49,11 @@ def logToFile(logfile: str):
     logger.addHandler(handler)
 
 
-class SilentError(Exception):
-    pass
-
 
 __all__ = [
-    'SilentError',
-    'getChild', 'setLevel', 'logToFile',
+    'Logger', 'named_logger',
+    'set_level', 'logToFile',
     'fatal', 'critical', 'error', 'warning', 'warn', 'info', 'debug',
     'FATAL', 'CRITICAL', 'ERROR', 'WARNING', 'WARN', 'INFO', 'DEBUG',
+    'INFO_LONG', 'DEBUG_LONG', 'level'
 ]

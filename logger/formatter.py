@@ -3,6 +3,7 @@ import logging
 from sty import fg, ef
 from cli.color import rand_8bit
 from logger.format import FORMAT_DEBUG, FORMAT_SHORT
+import logger.level as level
 
 
 class CustomFormatter(logging.Formatter):
@@ -32,7 +33,7 @@ class CustomFormatter(logging.Formatter):
 
         color = self.color_child(record.name)
 
-        format = FORMAT_DEBUG if self.logger.level < logging.INFO else FORMAT_SHORT
+        format = FORMAT_DEBUG if self.logger.level in (level.INFO_LONG, level.DEBUG_LONG) else FORMAT_SHORT
         format = format.replace(ef.rs, ef.rs + color)
         format = format.replace(fg.rs, fg.rs + color)
 

@@ -13,6 +13,9 @@ class Features:
     def is_empty(self) -> bool:
         return len(self._data) == 0
 
+    def clear(self):
+        self._data = []
+
     def read(self) -> list[tuple[str, Optional[dict]]]:
         return self._data[:]
 

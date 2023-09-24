@@ -31,12 +31,3 @@ class ConfigurableProcessor(Processor, Generic[T]):
         super().__init__(config)
         self.feature_config: T = feature_config
 
-
-C = TypeVar('C')
-
-
-def bind_config(processor: Type[ConfigurableProcessor[C]], feature_config: C):
-    if not feature_config:
-        return processor
-
-    return lambda config: processor(config, feature_config)

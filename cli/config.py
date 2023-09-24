@@ -5,11 +5,17 @@ from typing import Any, Optional
 import argparse
 import re
 import json
+
+import error
 from .configfile import apply_config_from_file
 from .keyvalue import KeyValue
 from config import Config
 import const as CONST
 import logger
+import logger.level as loglevel
+
+logger = logger.named_logger(__name__)
+
 
 def is_valid_file(parser, arg):
     if not os.path.exists(arg):
@@ -20,7 +26,7 @@ def is_valid_file(parser, arg):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="G-Code preprocessor"
+        description="G-Code Postprocessor"
     )
 
     parser.add_argument(
@@ -38,7 +44,7 @@ def parse_args():
     parser.add_argument(
         '-f', '--feature',
         action='append', dest='features',
-        help='use preprocessor feature',
+        help='use postprocessor feature',
     )
 
     parser.add_argument('-m', '--macro', dest='macros', default={}, action=KeyValue, help="set macro name as key=value pair", metavar="MACRO=CUSTOM")
@@ -72,7 +78,7 @@ def build_feature_config_dict(feature: str, config_string: str) -> Optional[dict
             return json.loads('{' + config_string + '}')
         except Exception:
             logger.error(f'Invalid configuration provided for feature "{feature}", "{config_string}" is not a valid feature configuration')
-            raise logger.SilentError()
+            raise error.SilentError()
 
     return None
 
@@ -108,12 +114,14 @@ def build_config(args: Any) -> Config:
         else:
             setattr(config.macro, key, value)
 
-    if args.verbose > 2:
-        config.log_level = logger.DEBUG
+    if args.verbose > 3:
+        config.log_level = loglevel.DEBUG_LONG
+    elif args.verbose > 2:
+        config.log_level = loglevel.DEBUG
     elif args.verbose > 1:
-        config.log_level = logger.INFO - 1
+        config.log_level = loglevel.INFO_LONG
     elif args.verbose > 0:
-        config.log_level = logger.INFO
+        config.log_level = loglevel.INFO
 
     return config
 

@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import Union
+from typing import Union, Optional
 from config import Config, Macros, Features
+import error
 import logger
 import yaml
 
-logger = logger.getChild('configfile')
+logger = logger.named_logger(__name__)
 
 
 def pop(data: dict, key: str, default = None):
@@ -34,25 +35,28 @@ def apply_macros(data: dict, config: Macros):
         setattr(config, key, pop(data, key, getattr(config, key)))
 
 
-def apply_features(data: list, config: Features):
+def apply_features(data: Optional[list], config: Features):
+    if data is None:
+        return
+
     if not isinstance(data, list):
         logger.error(f'Invalid feature configuration "{data}"')
-        raise logger.SilentError()
+        raise error.SilentError()
+
+    config.clear()
 
     for entry in data:
         if isinstance(entry, str):
             config.add(entry)
-        elif isinstance(entry, list) and len(entry) == 1 and isinstance(entry[0], str):
-            config.add(entry[0])
-        elif isinstance(entry, list) and len(entry) == 2 and isinstance(entry[0], str) and isinstance(entry[1], dict):
-            config.add(entry[0], entry[1])
+        elif isinstance(entry, dict) and len(entry) == 1:
+            config.add(list(entry.keys())[0], list(entry.values())[0])
         else:
             logger.error(f'Invalid feature configuration "{entry}"')
-            raise logger.SilentError()
+            raise error.SilentError()
 
 
 def apply_root(data: dict, config: Config):
-    apply(apply_features, data.pop('feature', []), config.feature)
+    apply(apply_features, data.pop('feature', None), config.feature)
     apply(apply_macros, data.pop('macro', {}), config.macro)
 
     config.dry_run = pop(data, 'dry_run', config.dry_run)

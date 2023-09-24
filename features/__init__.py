@@ -6,6 +6,8 @@ from base import CollectorsSet, ProcessorsList
 from config import Features
 import logger
 
+logger = logger.named_logger(__name__)
+
 AVAILABLE_FEATURES: dict[str, Callable[[CollectorsSet, ProcessorsList, Optional[dict]], None]] = {}
 
 __path__ = pkgutil.extend_path(__path__, __name__)
