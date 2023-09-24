@@ -21,7 +21,7 @@ class Features:
 
 
 class Macros:
-    print_start = '_PRINT_START'
+    print_start = ''
 
 
 class Config:

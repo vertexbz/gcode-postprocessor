@@ -44,6 +44,8 @@ if __name__ == '__main__':
             logger.setLevel(logger.ERROR)
             raise e
 
+        logger.debug(f'DRY RUN: {config.dry_run}')
+
         process(Context(), config, filepath)
     except Exception as e:
         if not isinstance(e, logger.SilentError):

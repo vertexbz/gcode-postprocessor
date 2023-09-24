@@ -25,8 +25,8 @@ def parse_args():
 
     parser.add_argument(
         '-d', '--dry', '--dry-run',
-        action='store_true', dest='dry_run', default=False,
-        help='dry run - without modifying the file (default: False)'
+        action='store_true', dest='dry_run', default=None,
+        help='dry run - without modifying the file'
     )
 
     parser.add_argument(
@@ -95,7 +95,8 @@ def build_config(args: Any) -> Config:
         apply_config_from_file(args.config.name, config)
 
     # Apply CLI params
-    config.dry_run = args.dry_run
+    if args.dry_run is not None:
+        config.dry_run = args.dry_run
     for feature_string in args.features:
         feature, config_string = parse_feature_string(feature_string)
         config.feature.add(feature, build_feature_config_dict(feature, config_string))
