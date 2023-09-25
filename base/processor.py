@@ -3,7 +3,7 @@ from typing import Type, Generic, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from base import Context
-    from config import Config
+    from base.config import Config
 
 
 class Processor:

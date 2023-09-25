@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Union, Optional
-from config import Config, Macros, Features
-import error
+from base.config import Config, Macros, Features
+from base import SilentError
 import logger
 import yaml
 
@@ -41,7 +41,7 @@ def apply_features(data: Optional[list], config: Features):
 
     if not isinstance(data, list):
         logger.error(f'Invalid feature configuration "{data}"')
-        raise error.SilentError()
+        raise SilentError()
 
     config.clear()
 
@@ -52,7 +52,7 @@ def apply_features(data: Optional[list], config: Features):
             config.add(list(entry.keys())[0], list(entry.values())[0])
         else:
             logger.error(f'Invalid feature configuration "{entry}"')
-            raise error.SilentError()
+            raise SilentError()
 
 
 def apply_root(data: dict, config: Config):

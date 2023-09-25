@@ -6,10 +6,10 @@ import argparse
 import re
 import json
 
-import error
+from base import SilentError
 from .configfile import apply_config_from_file
 from .keyvalue import KeyValue
-from config import Config
+from base.config import Config
 import const as CONST
 import logger
 import logger.level as loglevel
@@ -78,7 +78,7 @@ def build_feature_config_dict(feature: str, config_string: str) -> Optional[dict
             return json.loads('{' + config_string + '}')
         except Exception:
             logger.error(f'Invalid configuration provided for feature "{feature}", "{config_string}" is not a valid feature configuration')
-            raise error.SilentError()
+            raise SilentError()
 
     return None
 

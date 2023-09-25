@@ -1,12 +1,8 @@
 from __future__ import annotations
-
 import sys
-
 from cli.config import get_config_and_filepath
-from config import Config
-from base.context import Context
-from base.executor import Executor
-import error
+from base.config import Config
+from base import SilentError, Context, Executor
 from features import load_features
 import logger
 import const as CONST
@@ -50,7 +46,7 @@ if __name__ == '__main__':
 
         process(Context(), config, filepath)
     except Exception as e:
-        if not isinstance(e, error.SilentError):
+        if not isinstance(e, SilentError):
             raise e
         else:
             sys.exit(1)

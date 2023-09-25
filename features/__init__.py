@@ -3,7 +3,7 @@ from typing import Callable, Optional
 import pkgutil
 import importlib
 from base import CollectorsSet, ProcessorsList
-from config import Features
+from base.config import Features
 import logger
 
 logger = logger.named_logger(__name__)
