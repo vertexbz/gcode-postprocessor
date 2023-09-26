@@ -2,7 +2,7 @@
 Modular G-Code postprocessor for Prusa/SuperSlicer
 
 ## Installation
-Clone this repository `git clone ...`
+Clone this repository `git clone https://github.com/vertexbz/gcode-postprocessor.git`
 
 Provide path to `./run.sh` file of the cloned repository in `Print Settings > Output options > Post-processing scripts` of your slicer
 
