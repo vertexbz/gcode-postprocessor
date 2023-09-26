@@ -1,9 +1,12 @@
 from __future__ import annotations
-from typing import Optional
-import re
-from base import Processor, ProcessorsList, CollectorsSet, Context, check_no_config
-from utils import match_z_only_move, match_xy_move
+from typing import TYPE_CHECKING, Optional
+from base import Processor, ProcessorsList, CollectorsSet, check_no_config
 import logger
+from gcode import match
+
+if TYPE_CHECKING:
+    from base import Context
+    from gcode import Line
 
 logger = logger.named_logger(__name__)
 
@@ -11,21 +14,22 @@ logger = logger.named_logger(__name__)
 class ProcessMorningJumps(Processor):
     finished = False
 
-    def process(self, context: Context, line: str, no: int) -> str:
-        match = match_z_only_move(line)
-        if match:
-            logger.info(f'Removing early Z only move [{no}]: {line.rstrip()}')
-            return ""
+    def process(self, context: Context, line: Line):
+        if line.command is None:
+            return
 
-        if re.search(r'^T[0-9]+\s*(?:;.+)?$', line, flags=re.IGNORECASE):
-            logger.info(f'Removing initial tool change [{no}]: {line.rstrip()}')
-            return ""
+        if match.move(line, Z=True, X=False, Y=False, E=False):
+            logger.info(f'Removing early Z only move [{line.no}]: {line}')
+            line.clear()
+            return
 
-        match = match_xy_move(line)
-        if match:
+        if match.toolchange(line) is not None:
+            logger.info(f'Removing initial tool change [{line.no}]: {line}')
+            line.clear()
+            return
+
+        if match.move(line, X=True, Y=True):
             self.finished = True
-
-        return line
 
 
 def load(_: CollectorsSet, processors: ProcessorsList, config: Optional[dict]) -> None:

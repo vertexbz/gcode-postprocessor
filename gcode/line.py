@@ -7,6 +7,7 @@ from gcode.utils import validate_gcode_command
 
 
 class Line:
+    _raw = None
     _command: Optional[str] = None
     _comment: Optional[str] = None
     _initial_params: dict[str, ParamValue]
@@ -72,6 +73,8 @@ class Line:
 
     @raw.setter
     def raw(self, line: str):
+        if self._raw == line:
+            return
         self._raw = line
         self._initial_params = {}
         self._custom_params = {}
@@ -108,15 +111,22 @@ class Line:
         self.raw = line
 
     def __repr__(self):
-        return self._raw
+        return self._raw.rstrip()
 
     def __str__(self):
-        return self._raw
+        return self._raw.rstrip()
+
+    def clear(self):
+        self._raw = ''
+        self._initial_params = {}
+        self._custom_params = {}
+        self._command = None
+        self._comment = None
 
     @property
-    def is_comment(self):
+    def is_comment(self) -> bool:
         return self._command is None and self._comment is not None
 
     @property
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return self._command is None and self._comment is None

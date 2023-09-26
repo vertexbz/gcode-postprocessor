@@ -4,8 +4,10 @@ from cli.config import get_config_and_filepath
 from base.config import Config
 from base import SilentError, Context, Executor
 from features import load_features
+from gcode import Line
 import logger
-import const as CONST
+import const
+
 
 def process(ctx: Context, config: Config, input_file: str):
     logger.debug('Loading features...')
@@ -18,21 +20,23 @@ def process(ctx: Context, config: Config, input_file: str):
     with open(input_file, "r") as f:
         lines = f.readlines()
 
+    lines = list(map(lambda e: Line(e[1], e[0]), enumerate(lines)))
+
     logger.debug('Processing...')
     executor.execute(ctx, lines)
 
     if not config.dry_run:
         logger.debug('Saving')
         with open(input_file, "w") as f:
-            f.writelines(lines)
+            f.writelines(list(map(lambda l: l.raw, lines)))
 
     logger.info(f'Finished processing "{input_file}"')
 
 
 if __name__ == '__main__':
     logger.info('G-Code Postprocessor')
-    logger.named_logger('env').debug(f'Src dir: {CONST.SRCDIR}')
-    logger.named_logger('env').debug(f'V-Env dir: {CONST.VENVDIR}')
+    logger.named_logger('env').debug(f'Src dir: {const.SRCDIR}')
+    logger.named_logger('env').debug(f'V-Env dir: {const.VENVDIR}')
 
     try:
         try:

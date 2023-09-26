@@ -1,7 +1,11 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 from .collector import Collector
 from .processor import Processor
 from .context import Context
+
+if TYPE_CHECKING:
+    from gcode import Line
 
 
 class Executor:
@@ -9,13 +13,13 @@ class Executor:
         self.collectors = collectors
         self.processors = processors
 
-    def execute(self, context: Context, lines: list[str]):
+    def execute(self, context: Context, lines: list[Line]):
         for i, line in enumerate(lines):
             finished = 0
 
             for collector in self.collectors:
                 if not collector.finished:
-                    collector.collect(context, line, i)
+                    collector.collect(context, line)
                 if collector.finished:
                     finished = finished + 1
 
@@ -27,7 +31,7 @@ class Executor:
 
             for processor in self.processors:
                 if not processor.finished:
-                    lines[i] = processor.process(context, lines[i], i)
+                    processor.process(context, lines[i])
                 if processor.finished:
                     finished = finished + 1
 

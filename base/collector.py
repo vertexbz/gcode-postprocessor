@@ -4,6 +4,7 @@ from typing import Type, TYPE_CHECKING
 if TYPE_CHECKING:
     from base import Context
     from base.config import Config
+    from gcode import Line
 
 
 class Collector:
@@ -14,7 +15,7 @@ class Collector:
     def finished(self):
         return True
 
-    def collect(self, context: Context, line: str, no: int):
+    def collect(self, context: Context, line: Line):
         raise NotImplementedError("extend it")
 
 

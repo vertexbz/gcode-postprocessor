@@ -4,6 +4,7 @@ from typing import Type, Generic, TypeVar, TYPE_CHECKING
 if TYPE_CHECKING:
     from base import Context
     from base.config import Config
+    from gcode import Line
 
 
 class Processor:
@@ -14,7 +15,7 @@ class Processor:
     def finished(self):
         return True
 
-    def process(self, context: Context, line: str, no: int) -> str:
+    def process(self, context: Context, line: Line):
         raise NotImplementedError("extend it")
 
 

@@ -1,16 +1,21 @@
 from __future__ import annotations
-import re
-from base import Collector, Number, Context
+from typing import TYPE_CHECKING
+from base import Collector
+from gcode import parse_parameter, match
+
+if TYPE_CHECKING:
+    from base import Context
+    from gcode import Line
 
 
 class PrintSection:
     tool: int = -1
     start_line: int = -1
     end_line: int = -1
-    type: str = ""
-    z: Number = Number('0')
+    type: str = ''
+    z: float = 0
 
-    def __init__(self, tool: int, type: str, z: Number, start_line: int, end_line: int):
+    def __init__(self, tool: int, type: str, z: float, start_line: int, end_line: int):
         self.tool = tool
         self.type = type
         self.z = z
@@ -18,10 +23,10 @@ class PrintSection:
         self.end_line = end_line
 
     def __str__(self):
-        return f'T{self.tool} ; {self.z.raw}mm [{self.start_line}:{self.end_line}] {self.type}'
+        return f'T{self.tool} ; {self.z}mm [{self.start_line}:{self.end_line}] {self.type}'
 
     def __repr__(self):
-        return f'T{self.tool} ; {self.z.raw}mm [{self.start_line}:{self.end_line}] {self.type}'
+        return f'T{self.tool} ; {self.z}mm [{self.start_line}:{self.end_line}] {self.type}'
 
 
 class PrintSections(list[PrintSection]):
@@ -33,7 +38,7 @@ class CollectSections(Collector):
 
     _current_type = ""
     _current_tool = -1
-    _current_z = Number('0')
+    _current_z = 0.0
     _first_extrude_line = -1
     _last_extrude_line = -1
 
@@ -48,13 +53,13 @@ class CollectSections(Collector):
             self.add_section(context)
             self._current_tool = new_tool
 
-    def _z_changed(self, context: Context, new_z: Number):
-        if self._current_z.raw != new_z.raw:
+    def _z_changed(self, context: Context, new_z: float):
+        if self._current_z != new_z:
             self.add_section(context)
             self._current_z = new_z
 
     def _type_changed(self, context: Context, new_type: str):
-        if new_type == "Custom":
+        if new_type == 'Custom':
             return
 
         if self._current_type != new_type:
@@ -82,29 +87,30 @@ class CollectSections(Collector):
         self._first_extrude_line = -1
         self._last_extrude_line = -1
 
-    def collect(self, context: Context, line: str, no: int):
-        if line.startswith(self.config.macro.print_start):
-            match = re.match(r'INITIAL_TOOL=(\d+)', line)
-            if match:
-                self._current_tool = int(match.group(1))
-                return
+    def collect(self, context: Context, line: Line):
+        self._line_changed(line.no)
 
-        if line.startswith("T"):
-            match = re.match(r'T(\d+)', line)
-            if match:
-                new_tool = int(match.group(1))
-                self._tool_changed(context, new_tool)
-                return
-
-        if line.startswith(";TYPE:"):
-            self._type_changed(context, line[6:].rstrip())
+        if line.command == self.config.macro.print_start:
+            if 'INITIAL_TOOL' in line.params:
+                self._current_tool = line.params.INITIAL_TOOL
             return
 
-        if line.startswith(";Z:"):
-            height = line[3:].rstrip()
-            self._z_changed(context, Number(height))
+        toolchange = match.toolchange(line)
+        if toolchange is not None:
+            self._tool_changed(context, toolchange)
             return
 
-        if line.startswith("G0 ") or line.startswith("G1 "):
-            if ' E' in line:
-                self._line_changed(no)
+        if not line.comment:
+            return
+
+        if line.comment.startswith("TYPE:"):
+            self._type_changed(context, line.comment[5:].rstrip())
+            return
+
+        if line.comment.startswith("Z:"):
+            height = parse_parameter(line.comment[2:].rstrip())
+            if not isinstance(height, (int, float)):
+                raise ValueError(f'Invalid height comment "{line.comment}"')
+
+            self._z_changed(context, height)
+            return

@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import Optional
-import re
-from base import Processor, ProcessorsList, CollectorsSet, Context, check_no_config
+from typing import TYPE_CHECKING, Optional
+from base import Processor, ProcessorsList, CollectorsSet, check_no_config
 from collectors.last_unload import CollectLastUnload, LastUnloadLine
-from utils import match_retraction
+from gcode import match
 import logger
+
+if TYPE_CHECKING:
+    from base import Context
+    from gcode import Line
 
 logger = logger.named_logger(__name__)
 
@@ -14,36 +17,35 @@ class ProcessFinalUpload(Processor):
     almost_finished = False
     last_wipe = False
 
-    def process(self, context: Context, line: str, no: int) -> str:
+    def process(self, context: Context, line: Line):
         if context[LastUnloadLine] <= 0:
             self.finished = True
-            return line
+            return
 
-        if line.startswith(self.config.macro.print_start):
-            line = re.sub(r'\s+MMU_NO_FINAL_UNLOAD=\S*', '', line)
-            line = f'{line.rstrip()} MMU_NO_FINAL_UNLOAD=1\n'
-            logger.info('Ensured MMU_NO_FINAL_UNLOAD=1 in print start macro')
-            return line
+        if line.command == self.config.macro.print_start:
+            line.params.MMU_NO_FINAL_UNLOAD = 1
+            logger.info(f'Ensured MMU_NO_FINAL_UNLOAD=1 in print start macro [{line.no}]: {line}')
+            return
 
-        if no >= context[LastUnloadLine] - 15:
-            if match_retraction(line):
+        if line.no >= context[LastUnloadLine] - 15:
+            if match.move(line, E=True) and line.params.E < 0:
                 self.last_wipe = True
 
-        if self.last_wipe or no >= context[LastUnloadLine] - 1:
-            if line.startswith('; stop printing object'):
-                return line
+        if self.last_wipe or line.no >= context[LastUnloadLine] - 1:
+            if line.comment is not None and line.comment.startswith('stop printing object'):
+                return
 
+            logger.info(f'Removing final unload G-Code [{line.no}]: {line}')
             if self.almost_finished:
                 self.finished = True
-                return ";LAST UNLOAD REMOVED!!"
+                line.clear()
+                line.comment = 'LAST UNLOAD REMOVED!!'
+                return
 
-            if line.startswith('; CP TOOLCHANGE END'):
+            if line.comment is not None and line.comment.startswith('CP TOOLCHANGE END'):
                 self.almost_finished = True
 
-            logger.info(f'Removing final unload G-Code [{no}]: {line.rstrip()}')
-            return ""
-
-        return line
+            line.clear()
 
 
 def load(collectors: CollectorsSet, processors: ProcessorsList, config: Optional[dict]) -> None:

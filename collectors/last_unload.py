@@ -1,6 +1,10 @@
 from __future__ import annotations
-from typing import Optional
-from base import Collector, Context
+from typing import TYPE_CHECKING, Optional
+from base import Collector
+
+if TYPE_CHECKING:
+    from base import Context
+    from gcode import Line
 
 
 class LastUnloadLine(int):
@@ -11,10 +15,10 @@ class LastUnloadLine(int):
 class CollectLastUnload(Collector):
     finished = False
 
-    def collect(self, context: Context, line: str, no: int):
-        if line.startswith('; CP TOOLCHANGE START'):
-            context[LastUnloadLine] = LastUnloadLine(no)
+    def collect(self, context: Context, line: Line):
+        if line.comment == 'CP TOOLCHANGE START':
+            context[LastUnloadLine] = LastUnloadLine(line.no)
 
-        if line.startswith(';LAST UNLOAD REMOVED!!'):
+        if line.comment == 'LAST UNLOAD REMOVED!!':
             context[LastUnloadLine] = LastUnloadLine()
             self.finished = True
