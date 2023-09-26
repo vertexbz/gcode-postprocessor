@@ -83,11 +83,11 @@ class CollectSlicerSettings(Collector):
         if not line.is_comment:
             return
 
-        if line.comment == 'SuperSlicer_config = end':
+        if line.comment in ('SuperSlicer_config = end', 'prusaslicer_config = begin'):
             self.finished = True
             return
 
-        if line.comment == 'SuperSlicer_config = begin':
+        if line.comment in ('SuperSlicer_config = begin', 'prusaslicer_config = end'):
             self.began = True
             return
 
