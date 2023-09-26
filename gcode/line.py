@@ -62,7 +62,9 @@ class Line:
         else:
             glue = '; '
             if self._comment is None:
-                self._raw = self._raw.rstrip('\n') + ' ' + glue + cmt + '\n'
+                if self._command is not None:
+                    glue = ' ' + glue
+                self._raw = self._raw.rstrip('\n') + glue + cmt + '\n'
             else:
                 self._raw = re.sub(rf';\s*{self._comment}', glue + cmt, self._raw)
         self._comment = cmt
