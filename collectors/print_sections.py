@@ -10,30 +10,30 @@ if TYPE_CHECKING:
 
 class Tool(int):
     def __new__(cls, val: Optional[int] = None):
-        return super(Tool, cls).__new__(cls, val or -1)
+        return None if val is None or val < 0 else super(Tool, cls).__new__(cls, val)
 
 
 class Z(float):
     def __new__(cls, val: Optional[Union[int,float]] = None):
-        return super(Z, cls).__new__(cls, val or -1)
+        return None if val is None or val < 0 else super(Z, cls).__new__(cls, val)
 
 
 class Type(str):
     def __new__(cls, val: Optional[str] = None):
-        return super(Type, cls).__new__(cls, val or 'unknown')
+        return None if val is None or val.lower() in ('', 'custom') else super(Type, cls).__new__(cls, val.lower())
 
 
 class PrintSection:
-    tool: int = -1
+    tool: Tool = -1
     start_line: int = -1
     end_line: int = -1
-    type: str = ''
-    z: float = 0
+    type: Type = ''
+    z: Z = 0
 
     def __init__(self, tool: int, type: str, z: float, start_line: int, end_line: int):
-        self.tool = tool
-        self.type = type
-        self.z = z
+        self.tool = Tool(tool)
+        self.type = Type(type)
+        self.z = Z(z)
         self.start_line = start_line
         self.end_line = end_line
 
@@ -46,6 +46,19 @@ class PrintSection:
 
 class PrintSections(list[PrintSection]):
     pass
+
+
+class PrintInfo:
+    def __init__(self):
+        self.used_tools: set[Tool] = set()
+
+    def __str__(self):
+        return '\n'.join([
+            f'Used tools: {self.used_tools}',
+        ])
+
+    def __repr__(self):
+        return str(self)
 
 
 class CollectSections(Collector):
@@ -67,6 +80,10 @@ class CollectSections(Collector):
         if self._current_tool != new_tool:
             self.add_section(context)
             self._current_tool = new_tool
+
+            tool = Tool(self._current_tool)
+            if tool is not None:
+                context[PrintInfo].used_tools.add(tool)
 
     def _z_changed(self, context: Context, new_z: float):
         if self._current_z != new_z:
