@@ -20,12 +20,12 @@ class ProcessMorningJumps(Processor):
 
         if match.move(line, Z=True, X=False, Y=False, E=False):
             logger.info(f'Removing early Z only move [{line.no}]: {line}')
-            line.clear()
+            line.remove()
             return
 
         if match.toolchange(line) is not None:
             logger.info(f'Removing initial tool change [{line.no}]: {line}')
-            line.clear()
+            line.remove()
             return
 
         if match.move(line, X=True, Y=True):

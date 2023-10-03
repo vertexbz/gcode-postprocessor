@@ -1,11 +1,26 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Union
 from base import Collector
 from gcode import parse_parameter, match
 
 if TYPE_CHECKING:
     from base import Context
     from gcode import Line
+
+
+class Tool(int):
+    def __new__(cls, val: Optional[int] = None):
+        return super(Tool, cls).__new__(cls, val or -1)
+
+
+class Z(float):
+    def __new__(cls, val: Optional[Union[int,float]] = None):
+        return super(Z, cls).__new__(cls, val or -1)
+
+
+class Type(str):
+    def __new__(cls, val: Optional[str] = None):
+        return super(Type, cls).__new__(cls, val or 'unknown')
 
 
 class PrintSection:
@@ -88,6 +103,12 @@ class CollectSections(Collector):
         self._last_extrude_line = -1
 
     def collect(self, context: Context, line: Line):
+        self._collect(context, line)
+        line.meta[Tool] = Tool(self._current_tool)
+        line.meta[Type] = Type(self._current_type)
+        line.meta[Z] = Z(self._current_z)
+
+    def _collect(self, context: Context, line: Line):
         self._line_changed(line.no)
 
         if line.command == self.config.macro.print_start:

@@ -14,24 +14,19 @@ class Executor:
         self.processors = processors
 
     def execute(self, context: Context, lines: list[Line]):
-        for i, line in enumerate(lines):
-            finished = 0
-
+        for line in lines:
             for collector in self.collectors:
                 if not collector.finished:
                     collector.collect(context, line)
-                if collector.finished:
-                    finished = finished + 1
 
-            if finished == len(self.collectors):
-                break
+            line.meta.freeze()
 
-        for i, _ in enumerate(lines):
+        for line in lines:
             finished = 0
 
             for processor in self.processors:
                 if not processor.finished:
-                    processor.process(context, lines[i])
+                    processor.process(context, line)
                 if processor.finished:
                     finished = finished + 1
 

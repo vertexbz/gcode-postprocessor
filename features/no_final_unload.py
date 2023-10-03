@@ -38,14 +38,14 @@ class ProcessFinalUpload(Processor):
             logger.info(f'Removing final unload G-Code [{line.no}]: {line}')
             if self.almost_finished:
                 self.finished = True
-                line.clear()
+                line.remove()
                 line.comment = 'LAST UNLOAD REMOVED!!'
                 return
 
             if line.comment is not None and line.comment.startswith('CP TOOLCHANGE END'):
                 self.almost_finished = True
 
-            line.clear()
+            line.remove()
 
 
 def load(collectors: CollectorsSet, processors: ProcessorsList, config: Optional[dict]) -> None:
