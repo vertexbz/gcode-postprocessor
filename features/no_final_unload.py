@@ -28,7 +28,7 @@ class ProcessFinalUpload(Processor):
             return
 
         if line.no >= context[LastUnloadLine] - 15:
-            if match.move(line, E=True) and line.params.E < 0:
+            if (match.move(line, E=True) and line.params.E < 0) or line.command == 'G10':
                 self.last_wipe = True
 
         if self.last_wipe or line.no >= context[LastUnloadLine] - 1:
