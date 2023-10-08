@@ -151,10 +151,10 @@ class Line:
             raise KeyError('Empty parameter name is not allowed')
 
         key = key.upper()
-        key_phrase = f'{key}='
+        key_phrase = f'{re.escape(key)}='
 
         if self.is_classic_command:
-            key_phrase = key
+            key_phrase = re.escape(key)
             if len(key) != 1:
                 raise KeyError('Classic commands support only one letter parameters')
             if value is not None and not isinstance(value, (int, float)):
@@ -166,7 +166,7 @@ class Line:
                 del self._params[key]
         else:
             if key in self._params:
-                self._raw = re.sub(rf'(\s+{key_phrase}){self._params[key]}', rf'\g<1>{value}', self._raw, flags=re.IGNORECASE)
+                self._raw = re.sub(rf'(\s+{key_phrase}){re.escape(self._params[key])}', rf'\g<1>{value}', self._raw, flags=re.IGNORECASE)
             else:
                 if self._comment is None:
                     self._raw = re.sub(rf'(\s+)$', rf' {key_phrase}{value}\1', self._raw, flags=re.IGNORECASE)

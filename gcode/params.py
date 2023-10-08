@@ -81,3 +81,11 @@ class ParamsHelper:
 
         for key, val in F.items():
             self[key] = val
+
+    def __repr__(self):
+        line: Line = object.__getattribute__(self, '_line')
+        return line._params.__repr__()
+
+    def __str__(self):
+        line: Line = object.__getattribute__(self, '_line')
+        return line._params.__str__()
