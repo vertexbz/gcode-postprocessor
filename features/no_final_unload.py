@@ -34,6 +34,8 @@ class ProcessFinalUpload(Processor):
         if self.last_wipe or line.no >= context[LastUnloadLine] - 1:
             if line.comment is not None and line.comment.startswith('stop printing object'):
                 return
+            if line.command is not None and line.command.startswith('EXCLUDE_OBJECT_'):
+                return
 
             logger.info(f'Removing final unload G-Code [{line.no}]: {line}')
             if self.almost_finished:
