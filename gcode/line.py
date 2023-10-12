@@ -166,7 +166,7 @@ class Line:
                 del self._params[key]
         else:
             if key in self._params:
-                self._raw = re.sub(rf'(\s+{key_phrase}){re.escape(self._params[key])}', rf'\g<1>{value}', self._raw, flags=re.IGNORECASE)
+                self._raw = re.sub(rf'(\s+{key_phrase}){re.escape(str(self._params[key]))}', rf'\g<1>{value}', self._raw, flags=re.IGNORECASE)
             else:
                 if self._comment is None:
                     self._raw = re.sub(rf'(\s+)$', rf' {key_phrase}{value}\1', self._raw, flags=re.IGNORECASE)

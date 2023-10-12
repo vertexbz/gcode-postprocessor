@@ -28,6 +28,16 @@ class ProcessMorningJumps(Processor):
             line.remove()
             return
 
+        if match.nozzle_temperature_change(line) is not None:
+            logger.info(f'Removing initial nozzle temperature change [{line.no}]: {line}')
+            line.remove()
+            return
+
+        if match.fan_speed_change(line) is not None:
+            logger.info(f'Removing initial fan speed change [{line.no}]: {line}')
+            line.remove()
+            return
+
         if match.move(line, X=True, Y=True):
             self.finished = True
 
