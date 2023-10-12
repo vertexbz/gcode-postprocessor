@@ -33,7 +33,7 @@ class ProcessMorningJumps(Processor):
             line.remove()
             return
 
-        if match.fan_speed_change(line) is not None:
+        if match.fan_speed_change(line) == 0:
             logger.info(f'Removing initial fan speed change [{line.no}]: {line}')
             line.remove()
             return
