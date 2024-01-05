@@ -19,7 +19,13 @@ class Line:
     def is_classic_command(self) -> bool:
         if not self._command:
             return False
-        return re.match(r'^[MG][0-9]+(:?\.[0-9]+)?$', self._command) is not None
+
+        try:
+            cmd = self._command
+            _ = float(cmd[1:])
+            return cmd[0].isupper() and cmd[1].isdigit()
+        except:
+            return False
 
     @cached_property
     def params(self):
@@ -68,7 +74,7 @@ class Line:
         if cmt == self._comment:
             return
         if cmt is None:
-            self._raw = re.sub(rf'\s*;\s*{self._comment}\s*$', '', self._raw)
+            self._raw = re.sub(rf'\s*;\s*{re.escape(self._comment)}\s*$', '', self._raw)
         else:
             glue = '; '
             if self._comment is None:
@@ -76,7 +82,7 @@ class Line:
                     glue = ' ' + glue
                 self._raw = self._raw.rstrip('\n') + glue + cmt + '\n'
             else:
-                self._raw = re.sub(rf';\s*{self._comment}', glue + cmt, self._raw)
+                self._raw = re.sub(rf';\s*{re.escape(self._comment)}', glue + cmt, self._raw)
         self._comment = cmt
 
     @property
